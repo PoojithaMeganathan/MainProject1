@@ -1,42 +1,50 @@
-$(document).ready(function(){
-	$error_result = $('<center><label class = "text-danger">Invalid username or password</label></center>');
-	$error_result2 = $('<center><label class = "text-danger">Please complete the required field</label></center>');
-	$loading = $('<center><img src = "images/499.gif" height = "15px" /></center>');
-	$('#login_admin').click(function(){
-		$error_result.remove();
-		$("#username").focus(function(){
-			$("#username_warning").removeClass('has-feedback has-error');
-			$('#username_warning').find('span').remove();
-		});
-		$('#password').focus(function(){
-			$('#password_warning').removeClass('has-feedback has-error');
-			$('#password_warning').find('span').remove();
-		});
-		$username = $('#username').val();
-		$password = $('#password').val();
-		if($username == "" && $password == ""){
-			$('#username_warning').addClass('has-feedback has-error');
-			$('<span class = "glyphicon glyphicon-remove form-control-feedback"></span>').appendTo('#username_warning');
-			$('#password_warning').addClass('has-feedback has-error');
-			$('<span class = "glyphicon glyphicon-remove form-control-feedback"></span>').appendTo('#password_warning');
-			$error_result2.appendTo('#result');
+
+var valid = true;
+
+//end log in submit 
+$(document).on('submit', '#form-login', function(event) {
+	event.preventDefault();
+	/* Act on the event */
+	var validate = '';
+	var form_data = new Array(
+								$('input[id=un]'),
+								$('input[id=pwd]')
+	  						);
+	var data = new Array(form_data.length);
+	for(var i = 0; i < form_data.length; i++){
+		if(form_data[i].val() == ''){
+			form_data[i].parent().parent().addClass('has-error');
 		}else{
-			$loading.fadeIn().appendTo('#result');
-			$(this).attr('disabled', 'disabled');
-			$error_result2.remove();
-			setTimeout(function(){
-				$loading.remove();
-				$.post('login.php', {username: $username, password: $password},
-					function(result){
-						if(result == 'success'){
-							window.location = 'home.php';
-						}else{
-							$error_result.fadeIn().appendTo('#result');
-							$('#login_admin').removeAttr('disabled');
-						}
-					}
-				);
-			}, 3000);	
+			form_data[i].parent().parent().removeClass('has-error');
+			data[i] = form_data[i].val();
+			validate += i;
 		}
-	});
-});
+	}
+
+	if(validate == '01'){
+		$.ajax({
+				url: 'data/user_login.php',
+				type: 'post',
+				dataType: 'json',
+				data: {
+					data: JSON.stringify(data)
+				},
+				success: function (data) {
+					if(data.valid == valid){
+						window.location = data.url;
+					}else{
+						$('#form-login').find('.text-danger').text(data.msg);
+						alert(data.msg);
+					}
+					// console.log(data);
+				},
+				error: function (){
+					alert('Error: L33+ #form-login');
+				}
+			});
+	}
+
+
+
+});									
+//end log in submit 
